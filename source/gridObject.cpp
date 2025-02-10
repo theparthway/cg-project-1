@@ -22,21 +22,41 @@ gridObject::gridObject() { // Assign current value of nextId to id and increment
     // Tetrahedron vertices with positions and colors
     std::vector<GLfloat> vertices = {
         // Positions          // Colors
-         0.0f,  1.0f,  0.0f,   1.0f, 0.0f, 0.0f,  // Top vertex
-        -1.0f, -1.0f, -1.0f,   0.0f, 1.0f, 0.0f,  // Front-left
-         1.0f, -1.0f, -1.0f,   0.0f, 0.0f, 1.0f,  // Front-right
-         0.0f, -1.0f,  1.0f,   1.0f, 1.0f, 0.0f   // Back
+        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // origin red
+        5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // x red
+
+        0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // origin green
+        0.0f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, // y green
+
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, // origin blue
+        0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 1.0f, // z blue
     };
+
+    // z lines
+    for (int i=-5;i<=5;i++) {
+        vertices.push_back(-5.0f); vertices.push_back(0.0f); vertices.push_back(i);
+        vertices.push_back(1.0f); vertices.push_back(1.0f); vertices.push_back(1.0f);
+
+        vertices.push_back(5.0f); vertices.push_back(0.0f); vertices.push_back(i);
+        vertices.push_back(1.0f); vertices.push_back(1.0f); vertices.push_back(1.0f);
+    }
+
+    // x lines
+    for (int i=-5;i<=5;i++) {
+        vertices.push_back(i); vertices.push_back(0.0f); vertices.push_back(-5.0f);
+        vertices.push_back(1.0f); vertices.push_back(1.0f); vertices.push_back(1.0f);
+
+        vertices.push_back(i); vertices.push_back(0.0f); vertices.push_back(5.0f);
+        vertices.push_back(1.0f); vertices.push_back(1.0f); vertices.push_back(1.0f);
+    }
 
     // Tetrahedron indices
     std::vector<GLuint> indices = {
-        0, 1,
-        0, 2,
-        0, 3,
-        1, 2,
-        2, 3,
-        1, 3
     };
+
+    for (int i=0;i<vertices.size();i++) {
+        indices.push_back(i);
+    }
     
     numIndices = (GLsizei)indices.size();
     
@@ -71,8 +91,12 @@ void gridObject::draw(const glm::mat4& view, const glm::mat4& projection) {
     glUseProgram(shaderProgram);
     
     // TODO: P1aTask1 - Compute the MVP matrix and send to shader as a uniform. Refer to meshObject.cpp as reference.
+    glm::mat4 MVP = projection * view * modelMatrix;
+    GLuint matrixID = glGetUniformLocation(shaderProgram, "MVP");
+    glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(MVP));
     
     // TODO: P1aTask1 - Bind the VAO and draw the grid using glDrawElements(GL_LINES, numIndices, GL_UNSIGNED_INT, 0);
-
+    glBindVertexArray(VAO);
+    glDrawElements(GL_LINES, numIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }

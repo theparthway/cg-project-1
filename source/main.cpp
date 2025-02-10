@@ -72,7 +72,7 @@ int main() {
         
         //TODO: P1aTask2 - Create the view matrix based on camera angles.
         glm::mat4 viewMatrix = glm::lookAt(
-            glm::vec3(0, 0, -5),   // Camera position
+            glm::vec3(10, 10, 10),   // Camera position
             glm::vec3(0.0f),  // Look at the origin
             glm::vec3(0, 1, 0)  // Head is looking up at the origin (set to 0,-1,0 to look upside-down)
         );
@@ -150,7 +150,7 @@ int initWindow() {
     glfwSetMouseButtonCallback(window, mouseCallback);
     
     // Dark blue background
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
     // Accept fragment if it closer to the camera than the former one

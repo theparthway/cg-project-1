@@ -29,18 +29,18 @@ meshObject::meshObject() : id(nextId++) { // Assign current value of nextId to i
     // Tetrahedron vertices with positions and colors
     std::vector<GLfloat> vertices = {
         // Positions
-         0.0f,  1.0f,  0.0f,  // Top vertex
-        -1.0f, -1.0f, -1.0f,  // Front-left
-         1.0f, -1.0f, -1.0f,  // Front-right
-         0.0f, -1.0f,  1.0f,  // Back
+        //  0.0f,  1.0f,  0.0f,  // Top vertex
+        // -1.0f, -1.0f, -1.0f,  // Front-left
+        //  1.0f, -1.0f, -1.0f,  // Front-right
+        //  0.0f, -1.0f,  1.0f,  // Back
     };
 
     // Tetrahedron indices
     std::vector<GLuint> indices = {
-        1, 0, 2, // Front face
-        2, 0, 3, // Right face
-        3, 0, 1, // Left face
-        3, 1, 2  // Bottom face
+        // 1, 0, 2, // Front face
+        // 2, 0, 3, // Right face
+        // 3, 0, 1, // Left face
+        // 3, 1, 2  // Bottom face
     };
     
     //TODO: P1bTask5 - Create normal buffer.
