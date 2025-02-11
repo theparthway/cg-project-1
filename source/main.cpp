@@ -41,10 +41,15 @@ int main() {
     // TODO: P1bTask4 - Create a hierarchical structure and adjust the relative translations.
 
     //TODO: P1aTask2 - Create variables to keep track of camera angles.
+    float cameraRadius = 15.0f;
+    float theta = 45.0f;
+    float phi = 45.0f;
+    float cameraSpeed = 60.0f;
+    bool isUpsideDown = false;
     
     //TODO: P1bTask5 - Create variables to store lighting info.
     
-    
+    double lastFrameTime = glfwGetTime();
     double lastTime = glfwGetTime();
     int nbFrames = 0;
     do {
@@ -58,23 +63,51 @@ int main() {
             lastTime += 1.0;
         }
         
+        double frameTime = glfwGetTime();
+        float deltaTime = float(frameTime - lastFrameTime);
+        lastFrameTime = frameTime;
         //TODO: P1aTask2 - set currSelected to 0 when key c is pressed.
+        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+            currSelected = 0;
+        }
         
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && currSelected == 0) {
             //TODO: P1aTask2 - adjust the camera rotation.
             // Note: to make adjustments independent of frame rate, use time since last frame to make adjustment.
+            theta += cameraSpeed * deltaTime;
         }
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && currSelected == 0) {
             //TODO: P1aTask2 - adjust the camera rotation.
+            theta -= cameraSpeed * deltaTime;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && currSelected == 0) {
+            phi += cameraSpeed * deltaTime;
+            if (phi > 180.0f) {
+                phi -= 360.0f;
+                isUpsideDown = !isUpsideDown;
+            }
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && currSelected == 0) {
+            phi -= cameraSpeed * deltaTime;
+            if (phi < -180.0f) {
+                phi += 360.0f;
+                isUpsideDown = !isUpsideDown;
+            }
         }
         
         //TODO: P1aTask2 - Add the cases for movment along the other axis.
         
         //TODO: P1aTask2 - Create the view matrix based on camera angles.
+
+        float x = cameraRadius * cos(glm::radians(theta)) * sin(glm::radians(phi));
+        float y = cameraRadius * cos(glm::radians(phi));
+        float z = cameraRadius * sin(glm::radians(theta)) * sin(glm::radians(phi));
         glm::mat4 viewMatrix = glm::lookAt(
-            glm::vec3(10, 10, 10),   // Camera position
+            glm::vec3(x, y, z),   // Camera position
             glm::vec3(0.0f),  // Look at the origin
-            glm::vec3(0, 1, 0)  // Head is looking up at the origin (set to 0,-1,0 to look upside-down)
+            isUpsideDown ? glm::vec3(0, -1, 0) : glm::vec3(0, 1, 0)  // Head is looking up at the origin (set to 0,-1,0 to look upside-down)
         );
         
         // Draw picking for P1bBonus2
