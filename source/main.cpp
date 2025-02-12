@@ -34,9 +34,15 @@ int main() {
     
     //TODO: P1aTask3 - Create each robot arm piece by creating instances class meshObject.
     gridObject grid;
-    meshObject obj;
+    meshObject base("../Base.obj");
+    meshObject arm1("../Arm1.obj");
+    meshObject joint("../joint.obj");
+    meshObject arm2("../arm2.obj");
     // TODO: P1aTask3 - Translate each robot arm piece to its approapriate location
-    obj.translate(glm::vec3(0,0,3));
+    base.translate(glm::vec3(0,0,0));
+    arm1.translate(glm::vec3(0,0,0));
+    joint.translate(glm::vec3(0,2.5,-1));
+    arm2.translate(glm::vec3(0,1.5,-1.5));
     
     // TODO: P1bTask4 - Create a hierarchical structure and adjust the relative translations.
 
@@ -114,7 +120,7 @@ int main() {
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)){
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             //TODO: P1bBonus2 draw all robort arm pieces using drawPicking function
-            obj.drawPicking(viewMatrix, projectionMatrix);
+            base.drawPicking(viewMatrix, projectionMatrix);
             currSelected = getPickedId();
             
             std::cout << "Picked id: " << currSelected << std::endl;
@@ -132,7 +138,10 @@ int main() {
         
         //TODO: P1aTask3 - Draw all robot arm pieces.
         grid.draw(viewMatrix, projectionMatrix);
-        obj.draw(viewMatrix, projectionMatrix);
+        base.draw(viewMatrix, projectionMatrix);
+        arm1.draw(viewMatrix, projectionMatrix);
+        joint.draw(viewMatrix, projectionMatrix);
+        arm2.draw(viewMatrix, projectionMatrix);
         
         //TODO: P1bTask4 - Draw the robot arm pieces using the hierachy instead. Call the draw function on the root node. The remeaining pieces will be drawn using recursive calls.
 

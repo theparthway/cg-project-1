@@ -2,13 +2,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <vector>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
 
 // Initialize static member
 int meshObject::nextId = 1;
 std::map<int, meshObject*> meshObject::meshObjectMap;
 
 // TODO: P1aTask3 - Modify the constructor of Object to accept the path to an obj file
-meshObject::meshObject() : id(nextId++) { // Assign current value of nextId to id and increment it
+meshObject::meshObject(const std::string& objFilePath) : id(nextId++) { // Assign current value of nextId to id and increment it
     
     // Add this object to the map
     meshObjectMap[id] = this;
@@ -25,27 +27,43 @@ meshObject::meshObject() : id(nextId++) { // Assign current value of nextId to i
     glBindVertexArray(VAO);
 
     // TODO: P1aTask3 - Read from obj file instead.
-    
-    // Tetrahedron vertices with positions and colors
-    std::vector<GLfloat> vertices = {
-        // Positions
-        //  0.0f,  1.0f,  0.0f,  // Top vertex
-        // -1.0f, -1.0f, -1.0f,  // Front-left
-        //  1.0f, -1.0f, -1.0f,  // Front-right
-        //  0.0f, -1.0f,  1.0f,  // Back
-    };
+    tinyobj::ObjReaderConfig reader_config;
+    reader_config.mtl_search_path = "../";
 
-    // Tetrahedron indices
-    std::vector<GLuint> indices = {
-        // 1, 0, 2, // Front face
-        // 2, 0, 3, // Right face
-        // 3, 0, 1, // Left face
-        // 3, 1, 2  // Bottom face
-    };
+    tinyobj::ObjReader reader;
+
+    if (!reader.ParseFromFile(objFilePath, reader_config)) {
+        if (!reader.Error().empty()) {
+            std::cerr << "TinyObjReader: " << reader.Error();
+        }
+        exit(1);
+    }
+
+    if (!reader.Warning().empty()) {
+        std::cout << "TinyObjReader: " << reader.Warning();
+    }
+
+    auto& attrib = reader.GetAttrib();
+    auto& shapes = reader.GetShapes();
+    auto& materials = reader.GetMaterials();
+
+    std::vector<GLfloat> vertices;
+    std::vector<GLuint> indices;
+
+    for (const auto& shape : shapes) {
+        for (const auto& index : shape.mesh.indices) {
+            vertices.push_back(attrib.vertices[3 * index.vertex_index]);
+            vertices.push_back(attrib.vertices[3 * index.vertex_index + 1]);
+            vertices.push_back(attrib.vertices[3 * index.vertex_index + 2]);
+
+            indices.push_back(indices.size());
+        }
+    }
     
     //TODO: P1bTask5 - Create normal buffer.
     
     numIndices = (GLsizei)indices.size();
+    std::cout << numIndices << std::endl;
     
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);

@@ -7,10 +7,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <common/shader.hpp>
 #include <map>
+#include <tiny_obj_loader.h>
+#include <string>
 
 class meshObject {
 public:
-    meshObject();
+    meshObject(const std::string& objFilePath);
     ~meshObject();
 
     void draw(const glm::mat4& view, const glm::mat4& projection);
