@@ -52,8 +52,11 @@ int main() {
     // TODO: P1aTask3 - Translate each robot arm piece to its approapriate location
     base.translate(glm::vec3(0,0,0));
     arm1.translate(glm::vec3(0,0.5,0));
-    joint.translate(glm::vec3(0,2,0));
-    arm2.translate(glm::vec3(0,0,-1.5));
+    arm1.rotate(-30.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+    joint.translate(glm::vec3(0,4,0));
+    arm2.translate(glm::vec3(0,0,0));
+    arm2.rotate(-120.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
 
     //TODO: P1aTask2 - Create variables to keep track of camera angles.
     float cameraRadius = 15.0f;
@@ -145,6 +148,13 @@ int main() {
         } else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
             currSelected = 2;
             std::cout << "base rotation selected" << std::endl;
+        } else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+            currSelected = 3;
+            std::cout << "arm1 rotation selected" << std:: endl;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+            currSelected = 4;
+            std::cout << "arm2 rotation selected" << std:: endl;
         }
         
         //TODO: P1bTask4 - On key press, based on currSelected, make appropriate transformation.
@@ -164,6 +174,7 @@ int main() {
             }
 
         }
+
         // base rotation
         if (currSelected == 2) {
             if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
@@ -171,6 +182,26 @@ int main() {
             }
             if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
                 base.rotate(-45.0f * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+        }
+
+        // arm1 rotation
+        if (currSelected == 3) {
+            if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+                arm1.rotate(45.0f * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
+            }
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                arm1.rotate(-45.0f * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
+            }
+        }
+
+        // arm2 rotation
+        if (currSelected == 4) {
+            if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+                arm2.rotate(45.0f * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
+            }
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                arm2.rotate(-45.0f * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
             }
         }
         
