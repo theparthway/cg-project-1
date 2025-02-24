@@ -9,6 +9,39 @@
 int meshObject::nextId = 1;
 std::map<int, meshObject*> meshObject::meshObjectMap;
 
+// me: P1bTask4
+void meshObject::addChild(meshObject* child) {
+    children.push_back(child);
+    child->setParent(this);
+}
+
+void meshObject::setParent(meshObject* newParent) {
+    parent = newParent;
+}
+
+void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projection, const glm::mat4 parentModel) {
+    // Combine with parent's model matrix
+    glm::mat4 combinedModel = parentModel * modelMatrix;
+    
+    // Draw this object using the combined model matrix
+    glUseProgram(shaderProgram);
+    
+    // Compute the MVP matrix
+    glm::mat4 MVP = projection * view * combinedModel;
+    GLuint matrixID = glGetUniformLocation(shaderProgram, "MVP");
+    glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(MVP));
+    
+    // Draw the object
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    
+    // Draw all children with the combined model matrix
+    for (auto child : children) {
+        child->drawWithChildren(view, projection, combinedModel);
+    }
+}
+
 // TODO: P1aTask3 - Modify the constructor of Object to accept the path to an obj file
 meshObject::meshObject(const std::string& objFilePath) : id(nextId++) { // Assign current value of nextId to id and increment it
     

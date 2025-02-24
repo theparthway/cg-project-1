@@ -17,6 +17,11 @@ const GLuint windowWidth = 1024, windowHeight = 768;
 GLFWwindow* window;
 
 // The object that is currently selected for P1bTask4
+// 0 camera
+// 1 base translation
+// 2 base rotation
+// 3 arm1 rotation
+// 4 arm2 rotation
 int currSelected = 0;
 
 
@@ -38,13 +43,17 @@ int main() {
     meshObject arm1("../Arm1.obj");
     meshObject joint("../joint.obj");
     meshObject arm2("../arm2.obj");
-    // TODO: P1aTask3 - Translate each robot arm piece to its approapriate location
-    base.translate(glm::vec3(0,0,0));
-    arm1.translate(glm::vec3(0,0,0));
-    joint.translate(glm::vec3(0,2.5,-1));
-    arm2.translate(glm::vec3(0,1.5,-1.5));
     
     // TODO: P1bTask4 - Create a hierarchical structure and adjust the relative translations.
+    base.addChild(&arm1);
+    arm1.addChild(&joint);
+    joint.addChild(&arm2);
+    
+    // TODO: P1aTask3 - Translate each robot arm piece to its approapriate location
+    base.translate(glm::vec3(0,0,0));
+    arm1.translate(glm::vec3(0,0.5,0));
+    joint.translate(glm::vec3(0,2,0));
+    arm2.translate(glm::vec3(0,0,-1.5));
 
     //TODO: P1aTask2 - Create variables to keep track of camera angles.
     float cameraRadius = 15.0f;
@@ -77,36 +86,37 @@ int main() {
             currSelected = 0;
         }
         
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && currSelected == 0) {
-            //TODO: P1aTask2 - adjust the camera rotation.
-            // Note: to make adjustments independent of frame rate, use time since last frame to make adjustment.
-            theta += cameraSpeed * deltaTime;
-        }
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && currSelected == 0) {
-            //TODO: P1aTask2 - adjust the camera rotation.
-            theta -= cameraSpeed * deltaTime;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && currSelected == 0) {
-            phi += cameraSpeed * deltaTime;
-            if (phi > 180.0f) {
-                phi -= 360.0f;
-                isUpsideDown = !isUpsideDown;
+        if (currSelected == 0) {
+            if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+                //TODO: P1aTask2 - adjust the camera rotation.
+                // Note: to make adjustments independent of frame rate, use time since last frame to make adjustment.
+                theta += cameraSpeed * deltaTime;
+            }
+            if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+                //TODO: P1aTask2 - adjust the camera rotation.
+                theta -= cameraSpeed * deltaTime;
+            }
+    
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                phi += cameraSpeed * deltaTime;
+                if (phi > 180.0f) {
+                    phi -= 360.0f;
+                    isUpsideDown = !isUpsideDown;
+                }
+            }
+    
+            if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+                phi -= cameraSpeed * deltaTime;
+                if (phi < -180.0f) {
+                    phi += 360.0f;
+                    isUpsideDown = !isUpsideDown;
+                }
             }
         }
-
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && currSelected == 0) {
-            phi -= cameraSpeed * deltaTime;
-            if (phi < -180.0f) {
-                phi += 360.0f;
-                isUpsideDown = !isUpsideDown;
-            }
-        }
+        
         
         //TODO: P1aTask2 - Add the cases for movment along the other axis.
-        
         //TODO: P1aTask2 - Create the view matrix based on camera angles.
-
         float x = cameraRadius * cos(glm::radians(theta)) * sin(glm::radians(phi));
         float y = cameraRadius * cos(glm::radians(phi));
         float z = cameraRadius * sin(glm::radians(theta)) * sin(glm::radians(phi));
@@ -129,21 +139,55 @@ int main() {
         }
         
         //TODO: P1bTask4 - On key press set currSelected to the id of the robot piece to select.
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+            currSelected = 1;
+            std::cout << "base translation selected" << std::endl;
+        } else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+            currSelected = 2;
+            std::cout << "base rotation selected" << std::endl;
+        }
         
         //TODO: P1bTask4 - On key press, based on currSelected, make appropriate transformation.
+        // base translation
+        if (currSelected == 1) {
+            if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+                base.translate(glm::vec3(-2.0f * deltaTime, 0.0f, 0.0f));
+            }
+            if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+                base.translate(glm::vec3(2.0f * deltaTime, 0.0f, 0.0f));
+            }
+            if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+                base.translate(glm::vec3(0.0f, 0.0f, -2.0f * deltaTime));
+            }
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                base.translate(glm::vec3(0.0f, 0.0f, 2.0f * deltaTime));
+            }
+
+        }
+        // base rotation
+        if (currSelected == 2) {
+            if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+                base.rotate(45.0f * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+            if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+                base.rotate(-45.0f * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+        }
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         // DRAWING the SCENE
         
         //TODO: P1aTask3 - Draw all robot arm pieces.
-        grid.draw(viewMatrix, projectionMatrix);
-        base.draw(viewMatrix, projectionMatrix);
-        arm1.draw(viewMatrix, projectionMatrix);
-        joint.draw(viewMatrix, projectionMatrix);
-        arm2.draw(viewMatrix, projectionMatrix);
+        // grid.draw(viewMatrix, projectionMatrix);
+        // base.draw(viewMatrix, projectionMatrix);
+        // arm1.draw(viewMatrix, projectionMatrix);
+        // joint.draw(viewMatrix, projectionMatrix);
+        // arm2.draw(viewMatrix, projectionMatrix);
         
         //TODO: P1bTask4 - Draw the robot arm pieces using the hierachy instead. Call the draw function on the root node. The remeaining pieces will be drawn using recursive calls.
+        grid.draw(viewMatrix, projectionMatrix);
+        base.drawWithChildren(viewMatrix, projectionMatrix);
 
         //TODO: P1bTask5 - Pass the lighting info to the draw function.
         

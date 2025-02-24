@@ -9,6 +9,7 @@
 #include <map>
 #include <tiny_obj_loader.h>
 #include <string>
+#include <vector>
 
 class meshObject {
 public:
@@ -25,6 +26,12 @@ public:
     static meshObject* getMeshObjectById(int id); // Retrieve object by ID
     
     // TODO: P1bTask4 - Create a list of children.
+    std::vector<meshObject*> children;
+    meshObject* parent = nullptr;
+
+    void addChild(meshObject* child);
+    void setParent(meshObject* parent);
+    void drawWithChildren(const glm::mat4& view, const glm::mat4& projection, glm::mat4 parentModel = glm::mat4(1.0f));
 
 private:
     GLuint VAO, VBO, EBO;
