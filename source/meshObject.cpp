@@ -19,9 +19,11 @@ void meshObject::setParent(meshObject* newParent) {
     parent = newParent;
 }
 
-void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projection, const glm::mat4 parentModel) {
+void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projection, const glm::mat4 parentModel, int selectedId) {
     // Combine with parent's model matrix
     glm::mat4 combinedModel = parentModel * modelMatrix;
+
+    bool isSelected = (id == selectedId);
     
     // Draw this object using the combined model matrix
     glUseProgram(shaderProgram);
@@ -30,6 +32,10 @@ void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projec
     glm::mat4 MVP = projection * view * combinedModel;
     GLuint matrixID = glGetUniformLocation(shaderProgram, "MVP");
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(MVP));
+
+    // me: P1bTask4
+    GLuint selectedID = glGetUniformLocation(shaderProgram, "isSelected");
+    glUniform1i(selectedID, isSelected ? 1 : 0);
     
     // Draw the object
     glBindVertexArray(VAO);
@@ -38,7 +44,7 @@ void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projec
     
     // Draw all children with the combined model matrix
     for (auto child : children) {
-        child->drawWithChildren(view, projection, combinedModel);
+        child->drawWithChildren(view, projection, combinedModel, selectedId);
     }
 }
 
@@ -129,7 +135,7 @@ meshObject::~meshObject() {
 }
 
 //TODO: P1bTask5 - Modify to accept lighiting info as arguement.
-void meshObject::draw(const glm::mat4& view, const glm::mat4& projection) {
+void meshObject::draw(const glm::mat4& view, const glm::mat4& projection, bool selected) {
     glUseProgram(shaderProgram);
     
     // Compute the MVP matrix
@@ -138,6 +144,10 @@ void meshObject::draw(const glm::mat4& view, const glm::mat4& projection) {
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(MVP));
     
     //TODO: P1bTask5 - Send lighting info to shader using uniform. May also need to send the model matrix seperatily as a uniform.
+
+    // me: P1bTask4
+    GLuint selectedID = glGetUniformLocation(shaderProgram, "isSelected");
+    glUniform1i(selectedID, selected ? 1 : 0);
 
     // Draw the object
     glBindVertexArray(VAO);

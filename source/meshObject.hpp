@@ -16,7 +16,7 @@ public:
     meshObject(const std::string& objFilePath);
     ~meshObject();
 
-    void draw(const glm::mat4& view, const glm::mat4& projection);
+    void draw(const glm::mat4& view, const glm::mat4& projection, bool selected = false);
     void drawPicking(const glm::mat4& view, const glm::mat4& projection);
     void translate(const glm::vec3& translation); // Translate the object
     void rotate(float angle, const glm::vec3& axis); // Rotate the object
@@ -31,7 +31,7 @@ public:
 
     void addChild(meshObject* child);
     void setParent(meshObject* parent);
-    void drawWithChildren(const glm::mat4& view, const glm::mat4& projection, glm::mat4 parentModel = glm::mat4(1.0f));
+    void drawWithChildren(const glm::mat4& view, const glm::mat4& projection, glm::mat4 parentModel = glm::mat4(1.0f), int selectedId = -1);
 
 private:
     GLuint VAO, VBO, EBO;

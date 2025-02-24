@@ -23,6 +23,7 @@ GLFWwindow* window;
 // 3 arm1 rotation
 // 4 arm2 rotation
 int currSelected = 0;
+bool rotation = false;
 
 
 int main() {
@@ -143,50 +144,50 @@ int main() {
         
         //TODO: P1bTask4 - On key press set currSelected to the id of the robot piece to select.
         if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-            currSelected = 1;
+            currSelected = base.getId();
+            rotation = false;
             std::cout << "base translation selected" << std::endl;
         } else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-            currSelected = 2;
+            currSelected = base.getId();
+            rotation = true;
             std::cout << "base rotation selected" << std::endl;
         } else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-            currSelected = 3;
+            currSelected = arm1.getId();
             std::cout << "arm1 rotation selected" << std:: endl;
         }
         else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-            currSelected = 4;
+            currSelected = arm2.getId();
             std::cout << "arm2 rotation selected" << std:: endl;
         }
         
         //TODO: P1bTask4 - On key press, based on currSelected, make appropriate transformation.
-        // base translation
-        if (currSelected == 1) {
-            if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-                base.translate(glm::vec3(-2.0f * deltaTime, 0.0f, 0.0f));
-            }
-            if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-                base.translate(glm::vec3(2.0f * deltaTime, 0.0f, 0.0f));
-            }
-            if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-                base.translate(glm::vec3(0.0f, 0.0f, -2.0f * deltaTime));
-            }
-            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-                base.translate(glm::vec3(0.0f, 0.0f, 2.0f * deltaTime));
-            }
-
-        }
-
-        // base rotation
-        if (currSelected == 2) {
-            if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-                base.rotate(45.0f * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
-            }
-            if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-                base.rotate(-45.0f * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+        // base
+        if (currSelected == base.getId()) {
+            if (rotation == false) {
+                if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+                    base.translate(glm::vec3(-2.0f * deltaTime, 0.0f, 0.0f));
+                }
+                if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+                    base.translate(glm::vec3(2.0f * deltaTime, 0.0f, 0.0f));
+                }
+                if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+                    base.translate(glm::vec3(0.0f, 0.0f, -2.0f * deltaTime));
+                }
+                if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                    base.translate(glm::vec3(0.0f, 0.0f, 2.0f * deltaTime));
+                }
+            } else {
+                if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+                    base.rotate(45.0f * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+                }
+                if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+                    base.rotate(-45.0f * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+                }
             }
         }
 
         // arm1 rotation
-        if (currSelected == 3) {
+        if (currSelected == arm1.getId()) {
             if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
                 arm1.rotate(45.0f * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
             }
@@ -196,7 +197,7 @@ int main() {
         }
 
         // arm2 rotation
-        if (currSelected == 4) {
+        if (currSelected == arm2.getId()) {
             if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
                 arm2.rotate(45.0f * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
             }
@@ -218,7 +219,7 @@ int main() {
         
         //TODO: P1bTask4 - Draw the robot arm pieces using the hierachy instead. Call the draw function on the root node. The remeaining pieces will be drawn using recursive calls.
         grid.draw(viewMatrix, projectionMatrix);
-        base.drawWithChildren(viewMatrix, projectionMatrix);
+        base.drawWithChildren(viewMatrix, projectionMatrix, glm::mat4(1.0f), currSelected);
 
         //TODO: P1bTask5 - Pass the lighting info to the draw function.
         
