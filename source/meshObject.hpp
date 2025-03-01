@@ -11,6 +11,26 @@
 #include <string>
 #include <vector>
 
+// Add this at the top of meshObject.hpp, before the meshObject class
+struct LightingInfo {
+    glm::vec3 cameraPosition;
+    
+    glm::vec3 light1Position;
+    glm::vec3 light1Ambient;
+    glm::vec3 light1Diffuse;
+    glm::vec3 light1Specular;
+    
+    glm::vec3 light2Position;
+    glm::vec3 light2Ambient;
+    glm::vec3 light2Diffuse;
+    glm::vec3 light2Specular;
+    
+    glm::vec3 materialAmbient;
+    glm::vec3 materialDiffuse;
+    glm::vec3 materialSpecular;
+    float materialShininess;
+};
+
 class meshObject {
 public:
     meshObject(const std::string& objFilePath);
@@ -31,10 +51,10 @@ public:
 
     void addChild(meshObject* child);
     void setParent(meshObject* parent);
-    void drawWithChildren(const glm::mat4& view, const glm::mat4& projection, glm::mat4 parentModel = glm::mat4(1.0f), int selectedId = -1);
+    void drawWithChildren(const glm::mat4& view, const glm::mat4& projection, glm::mat4 parentModel = glm::mat4(1.0f), int selectedId = -1, const LightingInfo& lightingInfo = {});
 
 private:
-    GLuint VAO, VBO, EBO;
+    GLuint VAO, VBO, EBO, NBO;
     GLuint shaderProgram;
     GLuint pickingShaderProgram;
     glm::mat4 modelMatrix;

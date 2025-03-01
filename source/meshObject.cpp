@@ -19,7 +19,9 @@ void meshObject::setParent(meshObject* newParent) {
     parent = newParent;
 }
 
-void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projection, const glm::mat4 parentModel, int selectedId) {
+void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projection, 
+                                  const glm::mat4 parentModel, int selectedId,
+                                  const LightingInfo& lightingInfo) {
     // Combine with parent's model matrix
     glm::mat4 combinedModel = parentModel * modelMatrix;
 
@@ -33,7 +35,36 @@ void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projec
     GLuint matrixID = glGetUniformLocation(shaderProgram, "MVP");
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(MVP));
 
-    // me: P1bTask4
+    // Pass model matrix to shader for lighting calculations
+    GLuint modelMatrixID = glGetUniformLocation(shaderProgram, "modelMatrix");
+    glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(combinedModel));
+    
+    // Pass view matrix to shader
+    GLuint viewMatrixID = glGetUniformLocation(shaderProgram, "viewMatrix");
+    glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(view));
+
+    // Pass lighting info to shader
+    glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPosition"), 1, glm::value_ptr(lightingInfo.cameraPosition));
+    
+    // Light 1
+    glUniform3fv(glGetUniformLocation(shaderProgram, "light1Position"), 1, glm::value_ptr(lightingInfo.light1Position));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "light1Ambient"), 1, glm::value_ptr(lightingInfo.light1Ambient));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "light1Diffuse"), 1, glm::value_ptr(lightingInfo.light1Diffuse));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "light1Specular"), 1, glm::value_ptr(lightingInfo.light1Specular));
+    
+    // Light 2
+    glUniform3fv(glGetUniformLocation(shaderProgram, "light2Position"), 1, glm::value_ptr(lightingInfo.light2Position));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "light2Ambient"), 1, glm::value_ptr(lightingInfo.light2Ambient));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "light2Diffuse"), 1, glm::value_ptr(lightingInfo.light2Diffuse));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "light2Specular"), 1, glm::value_ptr(lightingInfo.light2Specular));
+    
+    // Material properties
+    glUniform3fv(glGetUniformLocation(shaderProgram, "materialAmbient"), 1, glm::value_ptr(lightingInfo.materialAmbient));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "materialDiffuse"), 1, glm::value_ptr(lightingInfo.materialDiffuse));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "materialSpecular"), 1, glm::value_ptr(lightingInfo.materialSpecular));
+    glUniform1f(glGetUniformLocation(shaderProgram, "materialShininess"), lightingInfo.materialShininess);
+
+    // Selected flag
     GLuint selectedID = glGetUniformLocation(shaderProgram, "isSelected");
     glUniform1i(selectedID, isSelected ? 1 : 0);
     
@@ -44,7 +75,7 @@ void meshObject::drawWithChildren(const glm::mat4& view, const glm::mat4& projec
     
     // Draw all children with the combined model matrix
     for (auto child : children) {
-        child->drawWithChildren(view, projection, combinedModel, selectedId);
+        child->drawWithChildren(view, projection, combinedModel, selectedId, lightingInfo);
     }
 }
 
@@ -62,6 +93,7 @@ meshObject::meshObject(const std::string& objFilePath) : id(nextId++) { // Assig
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
+    glGenBuffers(1, &NBO);
 
     glBindVertexArray(VAO);
 
@@ -100,22 +132,45 @@ meshObject::meshObject(const std::string& objFilePath) : id(nextId++) { // Assig
     }
     
     //TODO: P1bTask5 - Create normal buffer.
+    std::vector<GLfloat> normals;
+    for (const auto& shape : shapes) {
+        for (const auto& index : shape.mesh.indices) {
+            normals.push_back(attrib.normals[3 * index.normal_index]);
+            normals.push_back(attrib.normals[3 * index.normal_index + 1]);
+            normals.push_back(attrib.normals[3 * index.normal_index + 2]);
+        }
+    }
+
+    // Bind normals to NBO
+    glBindBuffer(GL_ARRAY_BUFFER, NBO);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(GLfloat), normals.data(), GL_STATIC_DRAW);
+
+    // Set up vertex attribute pointers for normals
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+    glEnableVertexAttribArray(1);
     
     numIndices = (GLsizei)indices.size();
     std::cout << numIndices << std::endl;
     
+    // Bind vertices to VBO
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
-
-    // Vertex attributes
+    // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+    // Bind normals to NBO
+    glBindBuffer(GL_ARRAY_BUFFER, NBO);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(GLfloat), normals.data(), GL_STATIC_DRAW);
+
+    // Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(1);
+
+    // Bind element buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
 
     glBindVertexArray(0);
 
@@ -128,6 +183,7 @@ meshObject::~meshObject() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
+    glDeleteBuffers(1, &NBO);
     glDeleteProgram(shaderProgram);
     
     // Remove this object from the map

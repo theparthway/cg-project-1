@@ -67,6 +67,24 @@ int main() {
     bool isUpsideDown = false;
     
     //TODO: P1bTask5 - Create variables to store lighting info.
+    // Lighting variables
+    glm::vec3 light1Position = glm::vec3(5.0f, 5.0f, 5.0f);
+    glm::vec3 light1Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    glm::vec3 light1Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    glm::vec3 light1Specular = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    glm::vec3 light2Position = glm::vec3(5.0f, 5.0f, -5.0f);
+    glm::vec3 light2Ambient = glm::vec3(0.1f, 0.1f, 0.1f);
+    glm::vec3 light2Diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
+    glm::vec3 light2Specular = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    // Material properties
+    glm::vec3 materialAmbient = glm::vec3(0.2f, 0.2f, 0.2f);
+    glm::vec3 materialDiffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+    glm::vec3 materialSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
+    float materialShininess = 32.0f;
+
+    LightingInfo lightingInfo;
     
     double lastFrameTime = glfwGetTime();
     double lastTime = glfwGetTime();
@@ -129,6 +147,20 @@ int main() {
             glm::vec3(0.0f),  // Look at the origin
             isUpsideDown ? glm::vec3(0, -1, 0) : glm::vec3(0, 1, 0)  // Head is looking up at the origin (set to 0,-1,0 to look upside-down)
         );
+
+        // Update light positions relative to the camera
+        glm::vec3 cameraPosition = glm::vec3(x, y, z);
+        glm::vec3 cameraRight = glm::normalize(glm::cross(glm::vec3(0, 1, 0), glm::normalize(cameraPosition)));
+        glm::vec3 cameraUp = glm::normalize(glm::cross(glm::normalize(cameraPosition), cameraRight));
+
+        light1Position = cameraPosition + (cameraRight * -3.0f) + (cameraUp * 2.0f);
+        light2Position = cameraPosition + (cameraRight * 3.0f) + (cameraUp * 2.0f);
+
+        // Material properties
+        lightingInfo.materialAmbient = materialAmbient;
+        lightingInfo.materialDiffuse = materialDiffuse;
+        lightingInfo.materialSpecular = materialSpecular;
+        lightingInfo.materialShininess = materialShininess;
         
         // Draw picking for P1bBonus2
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)){
@@ -219,7 +251,27 @@ int main() {
         
         //TODO: P1bTask4 - Draw the robot arm pieces using the hierachy instead. Call the draw function on the root node. The remeaining pieces will be drawn using recursive calls.
         grid.draw(viewMatrix, projectionMatrix);
-        base.drawWithChildren(viewMatrix, projectionMatrix, glm::mat4(1.0f), currSelected);
+
+        // Create lighting info struct and pass it to the draw function
+        LightingInfo lightingInfo;
+        lightingInfo.cameraPosition = cameraPosition;
+
+        lightingInfo.light1Position = light1Position;
+        lightingInfo.light1Ambient = light1Ambient;
+        lightingInfo.light1Diffuse = light1Diffuse;
+        lightingInfo.light1Specular = light1Specular;
+
+        lightingInfo.light2Position = light2Position;
+        lightingInfo.light2Ambient = light2Ambient;
+        lightingInfo.light2Diffuse = light2Diffuse;
+        lightingInfo.light2Specular = light2Specular;
+
+        lightingInfo.materialAmbient = materialAmbient;
+        lightingInfo.materialDiffuse = materialDiffuse;
+        lightingInfo.materialSpecular = materialSpecular;
+        lightingInfo.materialShininess = materialShininess;
+
+        base.drawWithChildren(viewMatrix, projectionMatrix, glm::mat4(1.0f), currSelected, lightingInfo);
 
         //TODO: P1bTask5 - Pass the lighting info to the draw function.
         
