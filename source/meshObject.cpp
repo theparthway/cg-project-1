@@ -89,7 +89,6 @@ meshObject::meshObject(const std::string& objFilePath) : id(nextId++) { // Assig
     modelMatrix = glm::mat4(1.0f);
 
     // Generate and bind VAO, VBO, and EBO
-    // Generate and bind VAO, VBO, and EBO
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);

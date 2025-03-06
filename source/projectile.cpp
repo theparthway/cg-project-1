@@ -1,4 +1,3 @@
-// Create a new source file: projectile.cpp
 #include "projectile.hpp"
 
 Projectile::Projectile(const std::string& objPath, const glm::vec3& startPos, const glm::vec3& initialVelocity) 
@@ -13,19 +12,15 @@ Projectile::~Projectile() {
 void Projectile::update(float deltaTime) {
     if (hitGround) return;
     
-    // Update position based on velocity
     position += velocity * deltaTime;
     
-    // Apply gravity to velocity
     velocity.y -= gravity * deltaTime;
     
-    // Check if hit ground (assuming ground is at y=0)
     if (position.y <= 0.0f) {
         position.y = 0.0f;
         hitGround = true;
     }
     
-    // Update mesh position
     mesh->modelMatrix = glm::mat4(1.0f);
     mesh->translate(position);
     

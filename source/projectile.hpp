@@ -1,4 +1,3 @@
-// Create a new header file: projectile.hpp
 #ifndef PROJECTILE_HPP
 #define PROJECTILE_HPP
 
