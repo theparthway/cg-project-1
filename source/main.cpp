@@ -6,6 +6,7 @@
 #include <iostream>
 #include "meshObject.hpp"
 #include "gridObject.hpp"
+#include "projectile.hpp"
 
 // Function prototypes
 int initWindow(void);
@@ -24,6 +25,13 @@ GLFWwindow* window;
 // 4 arm2 rotation
 int currSelected = 0;
 bool rotation = false;
+
+// bonus
+Projectile* projectile = nullptr;
+bool teleportInProgress = false;
+bool teleportCompleted = false;
+float teleportTimer = 0.0f;
+const float teleportDuration = 1.0f; // Time to complete teleport animation
 
 
 int main() {
@@ -190,6 +198,66 @@ int main() {
         else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
             currSelected = arm2.getId();
             std::cout << "arm2 rotation selected" << std:: endl;
+        }
+
+        // bonus 1
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && !teleportInProgress && !projectile) {
+            // Calculate tip of Arm2 position and direction
+            glm::mat4 baseModelMatrix = base.modelMatrix;
+            glm::mat4 arm1ModelMatrix = baseModelMatrix * arm1.modelMatrix;
+            glm::mat4 jointModelMatrix = arm1ModelMatrix * joint.modelMatrix;
+            glm::mat4 arm2ModelMatrix = jointModelMatrix * arm2.modelMatrix;
+            
+            // Calculate the forward direction of Arm2 (assuming Z-axis is forward)
+            glm::vec3 arm2Direction = glm::normalize(glm::vec3(
+                arm2ModelMatrix[2][0],
+                arm2ModelMatrix[2][1],
+                arm2ModelMatrix[2][2]
+            ));
+            
+            // Calculate the tip position (assuming the tip is at the end of Arm2)
+            glm::vec3 arm2Position = glm::vec3(arm2ModelMatrix[3]);
+            float arm2Length = 4.0f; // Adjust based on your model
+            glm::vec3 tipPosition = arm2Position + arm2Direction * arm2Length;
+            
+            // Initial velocity based on Arm2 direction and length
+            glm::vec3 initialVelocity = arm2Direction * arm2Length * 2.0f;
+            initialVelocity.y = std::max(initialVelocity.y, 5.0f); // Ensure some upward velocity
+            
+            // Create tetrahedron projectile (or any other Platonic solid you have)
+            glm::vec3 testPosition = glm::vec3(0.0f, 5.0f, 0.0f); // Directly above the scene
+            glm::vec3 testVelocity = glm::vec3(0.0f, 0.0f, 0.0f); // No initial velocity
+            projectile = new Projectile("../cube.obj", tipPosition, initialVelocity);
+            teleportInProgress = true;
+        }
+
+        // Update and draw projectile
+        if (projectile) {
+            projectile->update(deltaTime);
+            projectile->draw(viewMatrix, projectionMatrix, lightingInfo);
+            
+            // Check if projectile hit ground
+            if (projectile->hasHitGround() && !teleportCompleted) {
+                teleportTimer += deltaTime;
+
+                std::cout << "teleport complete" << std::endl;
+                
+                if (teleportTimer >= teleportDuration) {
+                    // Teleport the robot to impact location
+                    glm::vec3 impactPosition = projectile->getPosition();
+                    
+                    // Reset base position and apply new position
+                    base.modelMatrix = glm::mat4(1.0f);
+                    base.translate(glm::vec3(impactPosition.x, 0.0f, impactPosition.z));
+                    
+                    // Clean up
+                    delete projectile;
+                    projectile = nullptr;
+                    teleportInProgress = false;
+                    teleportCompleted = false;
+                    teleportTimer = 0.0f;
+                }
+            }
         }
         
         //TODO: P1bTask4 - On key press, based on currSelected, make appropriate transformation.

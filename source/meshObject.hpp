@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-// Add this at the top of meshObject.hpp, before the meshObject class
 struct LightingInfo {
     glm::vec3 cameraPosition;
     
@@ -52,12 +51,12 @@ public:
     void addChild(meshObject* child);
     void setParent(meshObject* parent);
     void drawWithChildren(const glm::mat4& view, const glm::mat4& projection, glm::mat4 parentModel = glm::mat4(1.0f), int selectedId = -1, const LightingInfo& lightingInfo = {});
+    glm::mat4 modelMatrix;
 
 private:
     GLuint VAO, VBO, EBO, NBO;
     GLuint shaderProgram;
     GLuint pickingShaderProgram;
-    glm::mat4 modelMatrix;
 
     static int nextId; // Static counter for unique IDs
     int id;            // ID for this specific object

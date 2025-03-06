@@ -57,6 +57,8 @@ add_executable(p1
 	source/meshObject.hpp
 	source/gridObject.cpp
 	source/gridObject.hpp
+	source/projectile.cpp
+	source/projectile.hpp
 	common/shader.cpp
 	common/shader.hpp
 	common/controls.cpp
