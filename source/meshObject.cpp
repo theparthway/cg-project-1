@@ -222,19 +222,43 @@ void meshObject::rotate(float angle, const glm::vec3& axis) {
 }
 
 void meshObject::drawPicking(const glm::mat4& view, const glm::mat4& projection) {
-    glUseProgram(pickingShaderProgram); // Use the picking shader
+    glUseProgram(pickingShaderProgram);
 
-    //TODO: P1bBonus2 - Send the value of the id variable to the shader as a uniform. Use glUniform1f
+    // Send the object ID to the shader
+    GLuint objectIdLoc = glGetUniformLocation(pickingShaderProgram, "objectID");
+    glUniform1f(objectIdLoc, static_cast<float>(id));
 
     glm::mat4 MVP = projection * view * modelMatrix;
     GLuint matrixID = glGetUniformLocation(pickingShaderProgram, "MVP");
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(MVP));
 
-    // Draw the object
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-    glUseProgram(0); // Unbind the shader program
+}
+
+void meshObject::drawPickingWithChildren(const glm::mat4& view, const glm::mat4& projection, 
+    glm::mat4 parentModel) {
+    glm::mat4 combinedModel = parentModel * modelMatrix;
+
+    // Draw this object
+    glUseProgram(pickingShaderProgram);
+
+    GLuint objectIdLoc = glGetUniformLocation(pickingShaderProgram, "objectID");
+    glUniform1f(objectIdLoc, static_cast<float>(id));
+
+    glm::mat4 MVP = projection * view * combinedModel;
+    GLuint matrixID = glGetUniformLocation(pickingShaderProgram, "MVP");
+    glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(MVP));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Draw all children
+    for (auto child : children) {
+    child->drawPickingWithChildren(view, projection, combinedModel);
+    }
 }
 
 meshObject* meshObject::getMeshObjectById(int id) {

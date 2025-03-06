@@ -51,6 +51,8 @@ public:
     void addChild(meshObject* child);
     void setParent(meshObject* parent);
     void drawWithChildren(const glm::mat4& view, const glm::mat4& projection, glm::mat4 parentModel = glm::mat4(1.0f), int selectedId = -1, const LightingInfo& lightingInfo = {});
+    void drawPickingWithChildren(const glm::mat4& view, const glm::mat4& projection, 
+        glm::mat4 parentModel = glm::mat4(1.0f));
     glm::mat4 modelMatrix;
 
 private:

@@ -171,15 +171,24 @@ int main() {
         lightingInfo.materialShininess = materialShininess;
         
         // Draw picking for P1bBonus2
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)){
+        // Draw picking
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            //TODO: P1bBonus2 draw all robort arm pieces using drawPicking function
-            base.drawPicking(viewMatrix, projectionMatrix);
-            currSelected = getPickedId();
             
-            std::cout << "Picked id: " << currSelected << std::endl;
+            // Draw all objects in picking mode
+            base.drawPickingWithChildren(viewMatrix, projectionMatrix);
             
-            //TODO: P1bBonus2 - meshObject::getMeshObjectById can be used to get the picked object.
+            // Get the picked ID
+            int pickedId = getPickedId();
+            
+            if (pickedId > 0) {
+                // Get the picked object
+                meshObject* pickedObject = meshObject::getMeshObjectById(pickedId);
+                if (pickedObject) {
+                    currSelected = pickedId;
+                    std::cout << "Picked object with ID: " << pickedId << std::endl;
+                }
+            }
         }
         
         //TODO: P1bTask4 - On key press set currSelected to the id of the robot piece to select.
@@ -405,25 +414,29 @@ static void mouseCallback(GLFWwindow* window, int button, int action, int mods) 
     }
 }
 
-int getPickedId(){
+int getPickedId() {
     glFlush();
-    // --- Wait until all the pending drawing commands are really done.
-    // Ultra-mega-over slow !
-    // There are usually a long time between glDrawElements() and
-    // all the fragments completely rasterized.
     glFinish();
     
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    
+    int windowWidth, windowHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+    
+    int bufferWidth, bufferHeight;
+    glfwGetFramebufferSize(window, &bufferWidth, &bufferHeight);
+    
+    // Scale factor for high DPI displays
+    float scaleX = (float)bufferWidth / windowWidth;
+    float scaleY = (float)bufferHeight / windowHeight;
+    
+    // Flip y coordinate and scale coordinates
+    int x = (int)(xpos * scaleX);
+    int y = (int)((windowHeight - ypos) * scaleY);
     
     unsigned char data[4];
-
-    //TODO: P1bBonus2 - Use glfwGetCursorPos to get the x and y value of the cursor.
-    
-    //TODO: P1bBonus2 - Use glfwGetFramebufferSize and glfwGetWindowSize to get the frame buffer size and window size. On high resolution displays, these sizes might be different.
-    
-    
-    //TODO: P1bBonus2 - Use glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data) to read the pixel data.
-    // Note that y position has to be flipped as glfwGetCursorPos gives the cursor position relative to top left of the screen. The read location must also be multiplied by (buffer size / windowSize) for some displays.
+    glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
     
     int pickedId = data[0];
     return pickedId;
